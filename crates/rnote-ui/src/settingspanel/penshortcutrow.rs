@@ -1,6 +1,6 @@
 // Imports
 use super::penshortcutmodels::{
-    ChangePenStyleIconFactory, ChangePenStyleListFactory, ChangePenStyleListModel,
+    ChangePenStyleIconFactory, ChangePenStyleListFactory, ChangePenStyleListModel, FOCUS_MODE_ENTRY,
 };
 use adw::{prelude::*, subclass::prelude::*};
 use gtk4::{CompositeTemplate, DropDown, ListBoxRow, Widget, glib, glib::clone, glib::subclass::*};
@@ -67,13 +67,23 @@ mod imp {
             obj.set_factory(Some(&*icon_factory));
 
             obj.connect_selected_item_notify(move |row| {
-                let new_pen_style = row.pen_style();
+                let previous_action = row.action();
 
-                match &mut *row.imp().action.borrow_mut() {
-                    ShortcutAction::ChangePenStyle { style, .. } => {
-                        *style = new_pen_style;
-                    }
+                if row.selected_is_focus_mode() {
+                    row.imp().mode_dropdown.set_visible(false);
+                    *row.imp().action.borrow_mut() = ShortcutAction::ToggleFocusMode;
+                } else {
+                    row.imp().mode_dropdown.set_visible(true);
+                    let mode = match previous_action {
+                        ShortcutAction::ChangePenStyle { mode, .. } => mode,
+                        _ => ShortcutMode::Temporary,
+                    };
+                    *row.imp().action.borrow_mut() = ShortcutAction::ChangePenStyle {
+                        style: row.selected_pen_style().unwrap(),
+                        mode,
+                    };
                 }
+
                 row.emit_by_name::<()>("action-changed", &[]);
             });
 
@@ -85,6 +95,7 @@ mod imp {
                         ShortcutAction::ChangePenStyle { mode, .. } => {
                             *mode = penshortcutrow.shortcut_mode();
                         }
+                        _ => {}
                     }
                     penshortcutrow.emit_by_name::<()>("action-changed", &[]);
                 }
@@ -150,8 +161,20 @@ impl RnPenShortcutRow {
         self.emit_by_name::<()>("action-changed", &[]);
     }
 
-    pub(crate) fn pen_style(&self) -> PenStyle {
-        PenStyle::try_from(self.selected()).unwrap()
+    pub(crate) fn selected_is_focus_mode(&self) -> bool {
+        self.imp()
+            .changepenstyle_model
+            .string(self.selected())
+            .is_some_and(|string| string == FOCUS_MODE_ENTRY)
+    }
+
+    fn focus_mode_index(&self) -> Option<u32> {
+        let index = self.imp().changepenstyle_model.find(FOCUS_MODE_ENTRY);
+        (index != u32::MAX).then_some(index)
+    }
+
+    pub(crate) fn selected_pen_style(&self) -> Option<PenStyle> {
+        PenStyle::try_from(self.selected()).ok()
     }
 
     pub(crate) fn set_pen_style(&self, style: PenStyle) {
@@ -173,6 +196,13 @@ impl RnPenShortcutRow {
             ShortcutAction::ChangePenStyle { style, mode } => {
                 self.set_pen_style(style);
                 self.set_shortcut_mode(mode);
+                self.imp().mode_dropdown.set_visible(true);
+            }
+            ShortcutAction::ToggleFocusMode => {
+                if let Some(index) = self.focus_mode_index() {
+                    self.set_selected(index);
+                }
+                self.imp().mode_dropdown.set_visible(false);
             }
         }
     }
