@@ -9,6 +9,10 @@ use rnote_engine::pens::PenStyle;
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
+/// Marker string for the extra "focus mode" entry in the pen shortcut picker.
+/// Chosen to not collide with any `PenStyle` string representation.
+pub(crate) const FOCUS_MODE_ENTRY: &str = "focus_mode";
+
 #[derive(Debug, Clone)]
 pub(crate) struct ChangePenStyleListModel(StringList);
 
@@ -21,6 +25,7 @@ impl Default for ChangePenStyleListModel {
             &PenStyle::Eraser.to_string(),
             &PenStyle::Selector.to_string(),
             &PenStyle::Tools.to_string(),
+            FOCUS_MODE_ENTRY,
         ]))
     }
 }
@@ -63,28 +68,32 @@ impl Default for ChangePenStyleListFactory {
         });
         factory.connect_bind(move |_factory, list_item| {
             let list_item = list_item.downcast_ref::<ListItem>().unwrap();
-            let pen_style = PenStyle::from_str(
-                &list_item
-                    .item()
-                    .unwrap()
-                    .downcast::<StringObject>()
-                    .unwrap()
-                    .string(),
-            )
-            .unwrap();
+            let item_string = list_item
+                .item()
+                .unwrap()
+                .downcast::<StringObject>()
+                .unwrap()
+                .string();
             let item_box = list_item.child().unwrap().downcast::<gtk4::Box>().unwrap();
+
+            let (label, icon_name) = if item_string == FOCUS_MODE_ENTRY {
+                (gettext("Focus mode"), String::from("focus-mode-symbolic"))
+            } else {
+                let pen_style = PenStyle::from_str(&item_string).unwrap();
+                let label = match pen_style {
+                    PenStyle::Brush => gettext("Brush"),
+                    PenStyle::Shaper => gettext("Shaper"),
+                    PenStyle::Typewriter => gettext("Typewriter"),
+                    PenStyle::Eraser => gettext("Eraser"),
+                    PenStyle::Selector => gettext("Selector"),
+                    PenStyle::Tools => gettext("Tools"),
+                };
+                (label, pen_style.icon_name())
+            };
 
             let mut child = item_box.first_child();
             while let Some(ref next_child) = child {
                 if next_child.type_() == Label::static_type() {
-                    let label = match pen_style {
-                        PenStyle::Brush => gettext("Brush"),
-                        PenStyle::Shaper => gettext("Shaper"),
-                        PenStyle::Typewriter => gettext("Typewriter"),
-                        PenStyle::Eraser => gettext("Eraser"),
-                        PenStyle::Selector => gettext("Selector"),
-                        PenStyle::Tools => gettext("Tools"),
-                    };
                     next_child
                         .downcast_ref::<Label>()
                         .unwrap()
@@ -93,7 +102,7 @@ impl Default for ChangePenStyleListFactory {
                     next_child
                         .downcast_ref::<Image>()
                         .unwrap()
-                        .set_icon_name(Some(pen_style.icon_name().as_str()));
+                        .set_icon_name(Some(icon_name.as_str()));
                 }
 
                 child = next_child.next_sibling();
@@ -131,20 +140,20 @@ impl Default for ChangePenStyleIconFactory {
         });
         factory.connect_bind(move |_factory, list_item| {
             let list_item = list_item.downcast_ref::<ListItem>().unwrap();
-            let pen_style = PenStyle::from_str(
-                &list_item
-                    .item()
-                    .unwrap()
-                    .downcast::<StringObject>()
-                    .unwrap()
-                    .string(),
-            )
-            .unwrap();
-            let image = list_item.child().unwrap().downcast::<Image>().unwrap();
-            image
-                .downcast_ref::<Image>()
+            let item_string = list_item
+                .item()
                 .unwrap()
-                .set_icon_name(Some(pen_style.icon_name().as_str()));
+                .downcast::<StringObject>()
+                .unwrap()
+                .string();
+            let image = list_item.child().unwrap().downcast::<Image>().unwrap();
+
+            let icon_name = if item_string == FOCUS_MODE_ENTRY {
+                String::from("focus-mode-symbolic")
+            } else {
+                PenStyle::from_str(&item_string).unwrap().icon_name()
+            };
+            image.set_icon_name(Some(icon_name.as_str()));
         });
         Self(factory)
     }
