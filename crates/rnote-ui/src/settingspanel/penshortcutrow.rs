@@ -1,6 +1,7 @@
 // Imports
 use super::penshortcutmodels::{
-    ChangePenStyleIconFactory, ChangePenStyleListFactory, ChangePenStyleListModel, FOCUS_MODE_ENTRY,
+    FOCUS_MODE_ENTRY, PenShortcutActionIconFactory, PenShortcutActionListFactory,
+    PenShortcutActionListModel,
 };
 use adw::{prelude::*, subclass::prelude::*};
 use gtk4::{CompositeTemplate, DropDown, ListBoxRow, Widget, glib, glib::clone, glib::subclass::*};
@@ -18,7 +19,7 @@ mod imp {
     #[template(resource = "/com/github/flxzt/rnote/ui/penshortcutrow.ui")]
     pub(crate) struct RnPenShortcutRow {
         pub(crate) action: RefCell<ShortcutAction>,
-        pub(crate) changepenstyle_model: ChangePenStyleListModel,
+        pub(crate) shortcut_actions_model: PenShortcutActionListModel,
 
         #[template_child]
         pub(crate) mode_dropdown: TemplateChild<DropDown>,
@@ -31,7 +32,7 @@ mod imp {
                     style: PenStyle::Eraser,
                     mode: ShortcutMode::Temporary,
                 }),
-                changepenstyle_model: ChangePenStyleListModel::default(),
+                shortcut_actions_model: PenShortcutActionListModel::default(),
 
                 mode_dropdown: TemplateChild::default(),
             }
@@ -59,10 +60,10 @@ mod imp {
             self.parent_constructed();
             let obj = self.obj();
 
-            let list_factory = ChangePenStyleListFactory::default();
-            let icon_factory = ChangePenStyleIconFactory::default();
+            let list_factory = PenShortcutActionListFactory::default();
+            let icon_factory = PenShortcutActionIconFactory::default();
 
-            obj.set_model(Some(&*self.changepenstyle_model));
+            obj.set_model(Some(&*self.shortcut_actions_model));
             obj.set_list_factory(Some(&*list_factory));
             obj.set_factory(Some(&*icon_factory));
 
@@ -163,13 +164,13 @@ impl RnPenShortcutRow {
 
     pub(crate) fn selected_is_focus_mode(&self) -> bool {
         self.imp()
-            .changepenstyle_model
+            .shortcut_actions_model
             .string(self.selected())
             .is_some_and(|string| string == FOCUS_MODE_ENTRY)
     }
 
     fn focus_mode_index(&self) -> Option<u32> {
-        let index = self.imp().changepenstyle_model.find(FOCUS_MODE_ENTRY);
+        let index = self.imp().shortcut_actions_model.find(FOCUS_MODE_ENTRY);
         (index != u32::MAX).then_some(index)
     }
 

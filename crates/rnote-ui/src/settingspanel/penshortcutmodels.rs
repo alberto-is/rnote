@@ -14,9 +14,9 @@ use std::str::FromStr;
 pub(crate) const FOCUS_MODE_ENTRY: &str = "focus_mode";
 
 #[derive(Debug, Clone)]
-pub(crate) struct ChangePenStyleListModel(StringList);
+pub(crate) struct PenShortcutActionListModel(StringList);
 
-impl Default for ChangePenStyleListModel {
+impl Default for PenShortcutActionListModel {
     fn default() -> Self {
         Self(StringList::new(&[
             &PenStyle::Brush.to_string(),
@@ -30,7 +30,7 @@ impl Default for ChangePenStyleListModel {
     }
 }
 
-impl Deref for ChangePenStyleListModel {
+impl Deref for PenShortcutActionListModel {
     type Target = StringList;
 
     fn deref(&self) -> &Self::Target {
@@ -38,16 +38,16 @@ impl Deref for ChangePenStyleListModel {
     }
 }
 
-impl DerefMut for ChangePenStyleListModel {
+impl DerefMut for PenShortcutActionListModel {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ChangePenStyleListFactory(SignalListItemFactory);
+pub(crate) struct PenShortcutActionListFactory(SignalListItemFactory);
 
-impl Default for ChangePenStyleListFactory {
+impl Default for PenShortcutActionListFactory {
     fn default() -> Self {
         let factory = SignalListItemFactory::new();
         factory.connect_setup(move |_factory, list_item| {
@@ -112,7 +112,7 @@ impl Default for ChangePenStyleListFactory {
     }
 }
 
-impl Deref for ChangePenStyleListFactory {
+impl Deref for PenShortcutActionListFactory {
     type Target = SignalListItemFactory;
 
     fn deref(&self) -> &Self::Target {
@@ -120,16 +120,16 @@ impl Deref for ChangePenStyleListFactory {
     }
 }
 
-impl DerefMut for ChangePenStyleListFactory {
+impl DerefMut for PenShortcutActionListFactory {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ChangePenStyleIconFactory(SignalListItemFactory);
+pub(crate) struct PenShortcutActionIconFactory(SignalListItemFactory);
 
-impl Default for ChangePenStyleIconFactory {
+impl Default for PenShortcutActionIconFactory {
     fn default() -> Self {
         let factory = SignalListItemFactory::new();
         factory.connect_setup(move |_factory, list_item| {
@@ -159,7 +159,7 @@ impl Default for ChangePenStyleIconFactory {
     }
 }
 
-impl Deref for ChangePenStyleIconFactory {
+impl Deref for PenShortcutActionIconFactory {
     type Target = SignalListItemFactory;
 
     fn deref(&self) -> &Self::Target {
@@ -167,7 +167,7 @@ impl Deref for ChangePenStyleIconFactory {
     }
 }
 
-impl DerefMut for ChangePenStyleIconFactory {
+impl DerefMut for PenShortcutActionIconFactory {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }
