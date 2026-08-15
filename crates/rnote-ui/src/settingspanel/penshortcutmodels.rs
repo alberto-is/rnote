@@ -12,6 +12,7 @@ use std::str::FromStr;
 /// Marker string for the extra "focus mode" entry in the pen shortcut picker.
 /// Chosen to not collide with any `PenStyle` string representation.
 pub(crate) const FOCUS_MODE_ENTRY: &str = "focus_mode";
+pub(crate) const FOCUS_MODE_ICON_NAME: &str = "focus-mode-symbolic";
 
 #[derive(Debug, Clone)]
 pub(crate) struct PenShortcutActionListModel(StringList);
@@ -77,7 +78,7 @@ impl Default for PenShortcutActionListFactory {
             let item_box = list_item.child().unwrap().downcast::<gtk4::Box>().unwrap();
 
             let (label, icon_name) = if item_string == FOCUS_MODE_ENTRY {
-                (gettext("Focus mode"), String::from("focus-mode-symbolic"))
+                (gettext("Focus mode"), String::from(FOCUS_MODE_ICON_NAME))
             } else {
                 let pen_style = PenStyle::from_str(&item_string).unwrap();
                 let label = match pen_style {
@@ -149,7 +150,7 @@ impl Default for PenShortcutActionIconFactory {
             let image = list_item.child().unwrap().downcast::<Image>().unwrap();
 
             let icon_name = if item_string == FOCUS_MODE_ENTRY {
-                String::from("focus-mode-symbolic")
+                String::from(FOCUS_MODE_ICON_NAME)
             } else {
                 PenStyle::from_str(&item_string).unwrap().icon_name()
             };

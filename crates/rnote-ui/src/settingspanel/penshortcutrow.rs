@@ -77,7 +77,7 @@ mod imp {
                     row.imp().mode_dropdown.set_visible(true);
                     let mode = match previous_action {
                         ShortcutAction::ChangePenStyle { mode, .. } => mode,
-                        _ => ShortcutMode::Temporary,
+                        ShortcutAction::ToggleFocusMode => ShortcutMode::Temporary,
                     };
                     *row.imp().action.borrow_mut() = ShortcutAction::ChangePenStyle {
                         style: row.selected_pen_style().unwrap(),
@@ -96,7 +96,7 @@ mod imp {
                         ShortcutAction::ChangePenStyle { mode, .. } => {
                             *mode = penshortcutrow.shortcut_mode();
                         }
-                        _ => {}
+                        ShortcutAction::ToggleFocusMode => {}
                     }
                     penshortcutrow.emit_by_name::<()>("action-changed", &[]);
                 }
