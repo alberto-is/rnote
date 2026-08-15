@@ -11,6 +11,7 @@ use rnote_engine::pens::PenStyle;
 use rnote_engine::pens::shortcuts::ShortcutAction;
 use rnote_engine::pens::shortcuts::ShortcutMode;
 use std::cell::RefCell;
+use std::str::FromStr;
 
 mod imp {
     use super::*;
@@ -175,11 +176,21 @@ impl RnPenShortcutRow {
     }
 
     pub(crate) fn selected_pen_style(&self) -> Option<PenStyle> {
-        PenStyle::try_from(self.selected()).ok()
+        self.imp()
+            .shortcut_actions_model
+            .string(self.selected())
+            .and_then(|string| PenStyle::from_str(&string).ok())
+    }
+
+    fn style_index(&self, style: PenStyle) -> Option<u32> {
+        let index = self.imp().shortcut_actions_model.find(&style.to_string());
+        (index != u32::MAX).then_some(index)
     }
 
     pub(crate) fn set_pen_style(&self, style: PenStyle) {
-        self.set_selected(style.to_u32().unwrap())
+        if let Some(index) = self.style_index(style) {
+            self.set_selected(index);
+        }
     }
 
     pub(crate) fn shortcut_mode(&self) -> ShortcutMode {
