@@ -42,7 +42,13 @@ pub(crate) fn handle_pointer_controller_event(
     if is_stylus {
         stylus_active = gdk_event_type != gdk::EventType::ProximityOut;
     } else if stylus_active {
-        return (glib::Propagation::Proceed, pen_state, stylus_active);
+        // A deliberate mouse click hands control back to the mouse.
+        match gdk_event_type {
+            gdk::EventType::ButtonPress | gdk::EventType::ButtonRelease => {
+                stylus_active = false;
+            }
+            _ => return (glib::Propagation::Proceed, pen_state, stylus_active),
+        }
     }
 
     let mut handle_pen_event = false;
